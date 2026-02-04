@@ -7,19 +7,32 @@ Licensed under the Apache License 2.0.
 
 Features
 ================================
-* __1.x - 4.x__ version of [Socket.IO-client](https://github.com/socketio/socket.io-client) is supported
+* __1.x - 4.x__ version of [Socket.IO-client](https://github.com/socketio/socket.io) is supported
 * Supports xhr-polling transport  
 * Supports websocket transport  
 * Supports namespaces and rooms  
 * Supports ack (acknowledgment of received data)  
 * Supports SSL  
-* Supports client store (Memory, [Redisson](https://redisson.org), [Hazelcast](https://www.hazelcast.com/))  
-* Supports distributed broadcast across netty-socketio nodes ([Redisson](https://redisson.org), [Hazelcast](https://www.hazelcast.com/))  
+* Supports client store ([Redisson](https://redisson.pro), Hazelcast, Memory)  
+* Supports distributed broadcast across netty-socketio nodes ([Redisson](https://redisson.pro), Hazelcast)  
 * Supports OSGi  
 * Supports Spring  
+* Contains Java module info for JPMS. 
 * Lock-free and thread-safe implementation  
 * Declarative handler configuration via annotations  
 
+JAR is compatible with Java 8 but needs Java 11+ for building the module-info.
+
+### Maven 
+
+Include the following to your dependency list:
+```xml
+    <dependency>
+     <groupId>com.corundumstudio.socketio</groupId>
+     <artifactId>netty-socketio</artifactId>
+     <version>2.0.13</version>
+    </dependency>
+```
 
 Performance
 ================================
@@ -36,15 +49,59 @@ Customer feedback in __2014__:
 
 Projects using netty-socketio
 ================================
+Multiplayer Orchestra: [multiplayer-orchestra.com](https://multiplayer-orchestra.com/)  
 AVOS Cloud: [avoscloud.com](https://avoscloud.com/)  
-Bingo Crack: [bingocrack.com](http://bingocrack.com/)  
 Kambi Sports Solutions: [kambi.com](http://kambi.com/)  
 ARSnova: [arsnova.eu](https://arsnova.eu)  
-Zipwhip: [zipwhip.com](https://zipwhip.com/)
 
 Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
+
+#### 19-Mar-2025 - version 2.0.13 released
+
+Fixed - Socket.IO Client v2 fails to connect (thanks to @penguinlab)  
+Fixed - Support for v1 / readNamespace. V1 namespace is without special characters , or ? (thanks to @Pacl0)  
+
+#### 01-Nov-2024 - version 2.0.12 released
+
+Feature - enableCors setting added (thanks to @zd925)  
+Feature - ability to define http request decoder (thanks to @gurkancakir)  
+
+Fixed - if ack returns after the timeout trigger ,a IllegalStateException will be thrown (thanks to @malinGH)  
+Fixed - prevents the client from repeatedly connecting to the namespace (thanks to @bigtian99)  
+Fixed - treat attachments as binary by default (thanks to @nicsor)  
+Fixed - recoverable handshake failure handling (thanks to @berinhardt)  
+Fixed - HashedWheelTimeoutScheduler should remove scheduledFutures before task execution (thanks to @berinhardt)  
+
+#### 25-Jul-2024 - version 2.0.11 released
+
+Fixed - custom namespaces support auth data (thanks to @Addi)  
+Fixed - attachments frame buffer reading  
+Fixed - memory leak while WebSocketServerHandshakeException or Channel failed (thanks to @h3mant-1)
+
+#### 01-Mar-2024 - version 2.0.9 released
+
+Feature - v3/v4 parsing of multiple messages in one HTTP polling body (thanks to @unverbraucht)
+
+Fixed - IllegalReferenceCountException error
+
+#### 24-Jan-2024 - version 2.0.8 released
+
+Fixed - possible OOM caused by attachments parsing
+
+#### 23-Jan-2024 - version 2.0.7 released
+
+Github Actions support made by @liangyuanpeng
+
+Feature - Java module support (thanks to @unverbraucht)  
+Feature - AuthTokenListener added (thanks to @unverbraucht)  
+Feature - multi-packet separator support (thanks to @unverbraucht)  
+
+Improvement - Send Bulk leave event instead of multiple leave events on disconnect (thanks to @ksahu750)  
+
+Fixed - NPE during ack response timeout (thanks to @BlueSodaWater)  
+Fixed - Resource Leak in readVersion() method (thanks to @JHOANG23)
 
 #### 24-Oct-2023 - version 2.0.6 released
 
@@ -308,14 +365,3 @@ Improvement - logging error info with inbound data.
  
 #### 07-Jun-2013 - version 1.0.0 released
 First stable release.
-
-
-### Maven 
-
-Include the following to your dependency list:
-
-    <dependency>
-     <groupId>com.corundumstudio.socketio</groupId>
-     <artifactId>netty-socketio</artifactId>
-     <version>2.0.3</version>
-    </dependency>

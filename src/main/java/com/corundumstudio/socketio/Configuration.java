@@ -15,18 +15,18 @@
  */
 package com.corundumstudio.socketio;
 
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-
 import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
 import com.corundumstudio.socketio.listener.DefaultExceptionListener;
 import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.MemoryStoreFactory;
 import com.corundumstudio.socketio.store.StoreFactory;
+import io.netty.handler.codec.http.HttpDecoderConfig;
 
 import javax.net.ssl.KeyManagerFactory;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 public class Configuration {
 
@@ -84,6 +84,8 @@ public class Configuration {
 
     private String origin;
 
+    private boolean enableCors = true;
+
     private boolean httpCompression = true;
 
     private boolean websocketCompression = true;
@@ -91,6 +93,8 @@ public class Configuration {
     private boolean randomSession = false;
 
     private boolean needClientAuth = false;
+
+    private HttpRequestDecoderConfiguration httpRequestDecoderConfiguration = new HttpRequestDecoderConfiguration();
 
     public Configuration() {
     }
@@ -154,6 +158,7 @@ public class Configuration {
 
         setAddVersionHeader(conf.isAddVersionHeader());
         setOrigin(conf.getOrigin());
+        setEnableCors(conf.isEnableCors());
         setAllowHeaders(conf.getAllowHeaders());
         setSSLProtocol(conf.getSSLProtocol());
 
@@ -161,6 +166,7 @@ public class Configuration {
         setWebsocketCompression(conf.isWebsocketCompression());
         setRandomSession(conf.randomSession);
         setNeedClientAuth(conf.isNeedClientAuth());
+        setHttpRequestDecoderConfiguration(conf.getHttpRequestDecoderConfiguration());
     }
 
     public JsonSupport getJsonSupport() {
@@ -517,13 +523,30 @@ public class Configuration {
     public void setOrigin(String origin) {
         this.origin = origin;
     }
+
     public String getOrigin() {
         return origin;
+    }
+
+    /**
+     * cors dispose
+     * <p>
+     * Default is <code>true</code>
+     *
+     * @param enableCors enableCors
+     */
+    public void setEnableCors(boolean enableCors) {
+        this.enableCors = enableCors;
+    }
+
+    public boolean isEnableCors() {
+        return enableCors;
     }
 
     public boolean isUseLinuxNativeEpoll() {
         return useLinuxNativeEpoll;
     }
+
     public void setUseLinuxNativeEpoll(boolean useLinuxNativeEpoll) {
         this.useLinuxNativeEpoll = useLinuxNativeEpoll;
     }
@@ -617,5 +640,20 @@ public class Configuration {
     }
     public boolean isNeedClientAuth() {
         return needClientAuth;
+    }
+
+    public HttpRequestDecoderConfiguration getHttpRequestDecoderConfiguration() {
+        return httpRequestDecoderConfiguration;
+    }
+
+    public void setHttpRequestDecoderConfiguration(HttpRequestDecoderConfiguration httpRequestDecoderConfiguration) {
+        this.httpRequestDecoderConfiguration = httpRequestDecoderConfiguration;
+    }
+
+    public HttpDecoderConfig getHttpDecoderConfig() {
+        return new HttpDecoderConfig()
+                .setMaxInitialLineLength(httpRequestDecoderConfiguration.getMaxInitialLineLength())
+                .setMaxHeaderSize(httpRequestDecoderConfiguration.getMaxHeaderSize())
+                .setMaxChunkSize(httpRequestDecoderConfiguration.getMaxChunkSize());
     }
 }

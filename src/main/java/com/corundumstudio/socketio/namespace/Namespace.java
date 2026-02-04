@@ -49,6 +49,8 @@ public class Namespace implements SocketIONamespace {
     private final Queue<PongListener> pongListeners = new ConcurrentLinkedQueue<PongListener>();
     private final Queue<EventInterceptor> eventInterceptors = new ConcurrentLinkedQueue<EventInterceptor>();
 
+    private final Queue<AuthTokenListener> authDataInterceptors = new ConcurrentLinkedQueue<>();
+
     private final Map<UUID, SocketIOClient> allClients = PlatformDependent.newConcurrentHashMap();
     private final ConcurrentMap<String, Set<UUID>> roomClients = PlatformDependent.newConcurrentHashMap();
     private final ConcurrentMap<UUID, Set<String>> clientRooms = PlatformDependent.newConcurrentHashMap();
@@ -174,13 +176,14 @@ public class Namespace implements SocketIONamespace {
     public void onDisconnect(SocketIOClient client) {
         Set<String> joinedRooms = client.getAllRooms();        
         allClients.remove(client.getSessionId());
+        final Set<String> roomsToLeave = new HashSet<>(joinedRooms);
 
         // client must leave all rooms and publish the leave msg one by one on disconnect.
         for (String joinedRoom : joinedRooms) {
             leave(roomClients, joinedRoom, client.getSessionId());
-            storeFactory.pubSubStore().publish(PubSubType.LEAVE, new JoinLeaveMessage(client.getSessionId(), joinedRoom, getName()));
         }
         clientRooms.remove(client.getSessionId());
+        storeFactory.pubSubStore().publish(PubSubType.BULK_LEAVE, new BulkJoinLeaveMessage(client.getSessionId(), roomsToLeave, getName()));
 
         try {
             for (DisconnectListener listener : disconnectListeners) {
@@ -197,6 +200,11 @@ public class Namespace implements SocketIONamespace {
     }
 
     public void onConnect(SocketIOClient client) {
+        if (roomClients.containsKey(getName()) &&
+                roomClients.get(getName()).contains(client.getSessionId())) {
+            return;
+        }
+
         join(getName(), client.getSessionId());
         storeFactory.pubSubStore().publish(PubSubType.JOIN, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
 
@@ -427,4 +435,23 @@ public class Namespace implements SocketIONamespace {
         return allClients.get(uuid);
     }
 
+    @Override
+    public void addAuthTokenListener(final AuthTokenListener listener) {
+        this.authDataInterceptors.add(listener);
+    }
+
+  public AuthTokenResult onAuthData(SocketIOClient client, Object authData) {
+      try {
+          for (AuthTokenListener listener : authDataInterceptors) {
+              final AuthTokenResult result = listener.getAuthTokenResult(authData, client);
+              if (!result.isSuccess()) {
+                return result;
+              }
+          }
+          return AuthTokenResult.AuthTokenResultSuccess;
+      } catch (Exception e) {
+          exceptionListener.onAuthException(e, client);
+      }
+      return new AuthTokenResult(false, "Internal error");
+  }
 }
